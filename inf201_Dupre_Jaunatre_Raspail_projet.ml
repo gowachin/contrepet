@@ -15,11 +15,8 @@
 type 'a ensemble = Ve | Ce of 'a * 'a ensemble ;;
 
 (* TODO !
-Suppression A
-Egalite
-Intersection
-Union
-Difference
+Intersection M
+Difference A
 Difference symetrique
 *)
 
@@ -41,11 +38,11 @@ let rec cardinal (ens:'a ensemble) : int =
     | Ce(x, sens) -> 1 + cardinal (sens)
 ;;
 
-assert(cardinal(Ve) = 0);; (*- : unit = ()*)
-assert(cardinal(Ce(1,Ve)) = 1);; (*- : unit = ()*)
-assert(cardinal(Ce (1, Ce (2, Ve))) = 2);; (*- : unit = ()*)
-assert(cardinal(Ce (1.5, Ce (3.14, Ve))) = 2);; (*- : unit = ()*)
-assert(cardinal(Ce ("hello", Ce ("world", Ve))) = 2);; (*- : unit = ()*)
+assert(cardinal(Ve) = 0);; (* - : unit = () *)
+assert(cardinal(Ce(1,Ve)) = 1);; (* - : unit = () *)
+assert(cardinal(Ce (1, Ce (2, Ve))) = 2);; (* - : unit = () *)
+assert(cardinal(Ce (1.5, Ce (3.14, Ve))) = 2);; (* - : unit = () *)
+assert(cardinal(Ce ("hello", Ce ("world", Ve))) = 2);; (* - : unit = () *)
 
 (*Appartenance*)
 (*
@@ -66,17 +63,17 @@ let rec appartient (elt: 'a) (ens: 'a ensemble) : bool =
     | Ce(x,y) -> false || appartient elt y 
   ;;
 
-  assert(appartient 1 (Ce (1, Ce (2, Ve))));; (*- : unit = ()*)
-  assert(not (appartient 3. (Ce (1., Ce (2., Ce (4., Ve))))));; (*- : unit = ()*)
-  assert(appartient false (Ce (true, Ce (false, Ve))));; (*- : unit = ()*)
-  assert(not(appartient "hel" (Ce ("hello", Ce ("world", Ve)))));; (*- : unit = ()*)
+  assert(appartient 1 (Ce (1, Ce (2, Ve))));; (* - : unit = () *)
+  assert(not (appartient 3. (Ce (1., Ce (2., Ce (4., Ve))))));; (* - : unit = () *)
+  assert(appartient false (Ce (true, Ce (false, Ve))));; (* - : unit = () *)
+  assert(not(appartient "ahel" (Ce ("hello", Ce ("world", Ve)))));; (* - : unit = () *)
 
   
 (* Inclusion *)
 (* 
 |SPÉCIFICATION
 | - Profil inclus ∶ 'a ensemble -> 'a ensemble -> bool
-| - Sémantique : (inclus 𝑒𝑛𝑠1 𝑒𝑛𝑠2) est vrai si et seulement si 𝑒𝑛𝑠1 ⊂ 𝑒𝑛𝑠2
+| - Sémantique : (inclus ens1 ens2) est vrai si et seulement si ens1 inclus dans ens2
 | - Exemple :
 |   (1) inclus (Ce(1,Ve)) (Ce(1,Ce(2,Ve))) = true
 |   (2) inclus (Ce(1,Ve)) (Ce(2,Ce(3,Ve))) = false
@@ -90,10 +87,10 @@ let rec inclus (e1:'a ensemble) (e2:'a ensemble): bool =
   | Ve -> true
 ;;
 
-assert(inclus (Ce(1,Ve)) (Ce(1,Ce(2,Ve))));; (* - : unit = ()*)
-assert(not (inclus (Ce(1,Ve)) (Ce(2,Ce(3,Ve)))));; (* - : unit = ()*)
-assert(inclus (Ce(1,Ve)) (Ce(1,Ce(2,Ve))));; (* - : unit = ()*)
-assert(not (inclus (Ce("Never",Ce ("Gonna",Ce("Give",Ve)))) (Ce("You",Ce("Up",Ve)))));; (* - : unit = ()*)
+assert(inclus (Ce(1,Ve)) (Ce(1,Ce(2,Ve))));; (* - : unit = () *)
+assert(not (inclus (Ce(1,Ve)) (Ce(2,Ce(3,Ve)))));; (* - : unit = () *)
+assert(inclus (Ce(1,Ve)) (Ce(1,Ce(2,Ve))));; (* - : unit = () *)
+assert(not (inclus (Ce("Never",Ce ("Gonna",Ce("Give",Ve)))) (Ce("You",Ce("Up",Ve)))));; (* - : unit = () *)
 
 
 (* Ajout
@@ -116,9 +113,9 @@ let ajoute (elt: 'a) (ens: 'a ensemble) : 'a ensemble =
         Ce(elt, ens)
 ;;
 
-assert(ajoute 3 (Ce(1,Ve)) = (Ce(3, Ce(1, Ve))));; (* - : unit = ()*)
-assert(ajoute 3 Ve = (Ce(3, Ve)) );; (* - : unit = ()*)
-assert(ajoute "Immortal" (Ce("Immortal",Ve)) = (Ce("Immortal",Ve)));; (* - : unit = ()*)
+assert(ajoute 3 (Ce(1,Ve)) = (Ce(3, Ce(1, Ve))));; (* - : unit = () *)
+assert(ajoute 3 Ve = (Ce(3, Ve)) );; (* - : unit = () *)
+assert(ajoute "Immortal" (Ce("Immortal",Ve)) = (Ce("Immortal",Ve)));; (* - : unit = () *)
 
 
 (* Suppression
@@ -126,9 +123,9 @@ assert(ajoute "Immortal" (Ce("Immortal",Ve)) = (Ce("Immortal",Ve)));; (* - : uni
 | - Profil supprime ∶ 'a -> 'a ensemble -> 'a ensemble 
 | - Sémantique : supprime(a ens) enlève l'élément a de l'ensemble ens
 | - Exemple 
-|   (1) supprime (3 Ce(1,Ce(3,Ve))) = Ce(1,Ve)
-|   (2) supprime ("hello" Ce("world",Ce("hello",Ve)) = Ce("world",Ve)
-|   (3) supprime (false Ce(true,Ce(false,Ve))) = Ce(true,Ve)
+|   (1) supprime 3 (Ce(1,Ce(3,Ve))) = Ce(1,Ve)
+|   (2) supprime "hello" (Ce("world",Ce("hello",Ve))) = Ce("world",Ve)
+|   (3) supprime false (Ce(true,Ce(false,Ve))) = Ce(true,Ve)
 |REALISATION
 | - Implémentation :
 *)
@@ -136,21 +133,113 @@ let rec supprime (elt:'a) (ens:'a ensemble) : 'a ensemble =
   if not(appartient elt ens) then ens else
     match ens with
     | Ve -> Ve
+    | Ce(x,Ve) when x = elt -> Ve
+    | Ce(x,Ve) -> Ce(x,Ve)
     | Ce(x, Ce(y,z)) when y = elt -> Ce(x,z)
-    | Ce(x, Ce(y,z)) -> Ce(x,supprime elt Ce(y,z))
+    | Ce(x, Ce(y,z)) when x = elt -> Ce(y,z)
+    | Ce(x, Ce(y,z)) -> Ce(x,supprime elt (Ce(y,z)))
   ;;
-    
 
+  assert(supprime 3 (Ce(1,Ce(3,Ve))) = Ce(1,Ve));; (* - : unit = () *)
+  assert(supprime "hello" (Ce("world",Ce("hello",Ve))) = Ce("world",Ve));; (* - : unit = () *)
+  assert(supprime false (Ce(true,Ce(false,Ve))) = Ce(true,Ve));; (* - : unit = () *)
+  assert(supprime "pas" (Ce ("Je", (Ce ("suis", Ce ("pas", (Ce ("fort", Ce ("en", Ce ("ocaml", Ve))))))))) = (Ce ("Je", (Ce ("suis", (Ce ("fort", Ce ("en", Ce ("ocaml", Ve)))))))));; (* - : unit = () *)
 
+  
 (* Egalité
 |SPÉCIFICATION
-| - Profil egaux ∶ 'a -> 'a ensemble -> 'a ensemble 
-| - Sémantique : (𝑒𝑔𝑎𝑢𝑥 𝑒𝑛𝑠1 𝑒𝑛𝑠2) est vrai si et seulement si 𝑒𝑛𝑠1 et 𝑒𝑛𝑠2 ont les mêmes éléments.
+| - Profil egaux ∶ 'a ensemble -> 'a ensemble -> bool
+| - Sémantique : (egaux ens1 ens2) est vrai si et seulement si ens1 et ens1 ont les mêmes éléments.
 | - Exemple 
-|   (1) egaux (Ce(1, Ce(2, Ve))) (Ce(2, Ce(1, Ve))) = vrai
-|   (2) egaux Ve Ve = vrai
-|   (3) ajoute (Ce("Hello",Vide)) (Ce("Hello",Ce("World",Ve))) = false
+|   (1) egaux (Ce(1, Ce(2, Ve))) (Ce(2, Ce(1, Ve))) = true
+|   (2) egaux Ve Ve = true
+|   (3) egaux (Ce("Hello",Ve)) (Ce("Hello",Ce("World",Ve))) = false
 |REALISATION
 | - Implémentation :
 *)
-(*let rec egaux (elt:'a) (ens:'a ensemble):'a ensemble =*)
+let rec egaux (ens1:'a ensemble) (ens2:'a ensemble):bool =
+  if (cardinal ens1) <> (cardinal ens2) then false
+  else
+    match ens1 with
+    | Ce(x,y) -> (appartient x ens2) && (egaux y (supprime x ens2))
+    | Ve -> true
+;;
+  
+assert(egaux Ve Ve);; (* - : unit = () *)
+assert(egaux (Ce(1, Ce(2, Ve))) (Ce(2, Ce(1, Ve))));; (* - : unit = () *)
+assert(not (egaux (Ce("Hello",Ve)) (Ce("Hello",Ce("World",Ve)))));; (* - : unit = () *)
+assert(not (egaux (Ce(1, Ce(2,Ce(3,Ve)))) (Ce(2, Ce(1, Ve)))));; (* - : unit = () *)
+
+
+(* Intersection
+|SPÉCIFICATION
+| - Profil intersection ∶ 'a ensemble -> 'a ensemble -> 'a ensemble 
+| - Sémantique : intersection (ens1 ens2) renvois l'ensemble avec seulement les éléments compris dans les deux ensembles précisés
+| - Exemple 
+|   (1) intersection (Ce(1, Ce(2, Ve))) (Ce(2, Ce(1, Ve))) = (Ce(2, Ce(1, Ve)))
+|   (2) intersection Ve Ve = Ve
+|   (3) intersection (Ce("Hello",Ve)) (Ce("Hello",Ce("World",Ve))) = (Ce("Hello",Ve))
+|REALISATION
+| - Implémentation :
+*)
+let rec intersection (ens1 : 'a ensemble) (ens2 : 'a ensemble) : 'a ensemble =
+    if egaux ens1 ens2 then ens1
+    else
+        match ens1 with
+        | Ce(x,y) -> if not (appartient x ens2) then intersection y ens2 else Ce(x,intersection y ens2)
+        | Ve -> Ve   
+;;
+
+assert( intersection (Ce(1, Ce(2, Ve))) (Ce(2, Ce(1, Ve))) = (Ce(1, Ce(2, Ve))) );; (* - : unit = () *)
+assert( intersection Ve Ve = Ve );; (* - : unit = () *)
+assert(  intersection (Ce("Hello",Ve)) (Ce("Hello",Ce("World",Ve))) = (Ce("Hello",Ve)) );; (* - : unit = () *)
+    
+
+(* Union
+|SPÉCIFICATION
+| - Profil union ∶ 'a ensemble -> 'a ensemble -> 'a ensemble
+| - Sémantique : (union ens1 ens2) est l’ensemble ens1 ∪ ens2, c’est-à-dire l’ensemble des éléments appartenant à ens1 ou à ens2.
+| - Exemple 
+|   (1) union (Ce(1, Ce(2, Ve))) (Ce(2, Ce(1, Ve))) = (Ce(2, Ce(1, Ve)))
+|   (2) union (Ce(1, Ce(2, Ve))) (Ce(3, Ce(4, Ve))) = (Ce(1, Ce(2, Ce(3, Ce(4, Ve)))))
+|   (3) union (Ce("Hello",Ve)) (Ce("Hello",Ce("World",Ve))) = (Ce("Hello",Ce("World",Ve)))
+|REALISATION
+| - Implémentation :
+*)
+let rec union (ens1:'a ensemble) (ens2:'a ensemble):'a ensemble =
+  match ens1 with
+  | Ce(x,y) -> union y (ajoute x ens2)
+  | Ve -> ens2
+;;
+
+assert(union (Ce(1, Ce(2, Ve))) (Ce(2, Ce(1, Ve))) = (Ce(2, Ce(1, Ve))));; (* - : unit = () *)
+assert(union (Ce(3, Ce(4, Ve))) (Ce(2, Ce(1, Ve))) = (Ce(4, Ce(3, Ce(2, Ce(1, Ve))))));; (* - : unit = () *)
+assert(union (Ce("Hello",Ve)) (Ce("Hello",Ce("World",Ve))) = (Ce("Hello",Ce("World",Ve))));; (* - : unit = () *)
+
+  
+(* Différence
+|SPÉCIFICATION
+| - Profil dif ∶ 'a ensemble -> 'a ensemble -> 'a ensemble
+| - Sémantique : (dif ens1 ens2) est l’ensemble ens1 privé de ens2, c’est-à-dire l’ensemble des éléments appartenant à ens1 mais pas ens2.
+| - Exemple 
+|   (1) dif (Ce(2, Ve))) (Ce(2, Ce(1, Ve))) = (Ce(2, Ve))
+|   (2) dif (Ce(1., Ce(2., Ve))) (Ce(3., Ce(4., Ve))) = (Ce(1., Ce(2., Ve)))
+|   (3) dif (Ce("Hello",Ve)) (Ce("Hello",Ce("World",Ve))) = (Ce("Hello",Ve))
+|REALISATION
+| - Implémentation :
+*)
+(*
+let rec dif (ens1 : 'a ensemble) (ens2 : 'a ensemble) : 'a ensemble =
+  if egaux ens1 ens2 then Ve else
+  match ens1 with
+  | Ve -> Ve
+  | C(x,y) when (appartient x ens2) -> dif ens1 y
+  | AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+  
+*)
+
+
+
+
+
+
