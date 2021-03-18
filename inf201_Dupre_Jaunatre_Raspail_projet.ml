@@ -14,13 +14,6 @@
 
 type 'a ensemble = Ve | Ce of 'a * 'a ensemble ;;
 
-(* TODO !
-Intersection M
-Difference A
-Difference symetrique
-*)
-
-
 (* Cardinalité
 |SPÉCIFICATION 
 | - Profil cardinal ∶ 'a ensemble -> int
@@ -222,24 +215,41 @@ assert(union (Ce("Hello",Ve)) (Ce("Hello",Ce("World",Ve))) = (Ce("Hello",Ce("Wor
 | - Profil dif ∶ 'a ensemble -> 'a ensemble -> 'a ensemble
 | - Sémantique : (dif ens1 ens2) est l’ensemble ens1 privé de ens2, c’est-à-dire l’ensemble des éléments appartenant à ens1 mais pas ens2.
 | - Exemple 
-|   (1) dif (Ce(2, Ve))) (Ce(2, Ce(1, Ve))) = (Ce(2, Ve))
+|   (1) dif (Ce(2, Ve)) (Ce(2, Ce(1, Ve))) = Ve
 |   (2) dif (Ce(1., Ce(2., Ve))) (Ce(3., Ce(4., Ve))) = (Ce(1., Ce(2., Ve)))
-|   (3) dif (Ce("Hello",Ve)) (Ce("Hello",Ce("World",Ve))) = (Ce("Hello",Ve))
+|   (3) dif (Ce("Hello",Ce("IamAI",Ve))) (Ce("Hello",Ce("World",Ve))) = Ce("IamAI",Ve)
 |REALISATION
 | - Implémentation :
 *)
-(*
 let rec dif (ens1 : 'a ensemble) (ens2 : 'a ensemble) : 'a ensemble =
   if egaux ens1 ens2 then Ve else
   match ens1 with
   | Ve -> Ve
-  | C(x,y) when (appartient x ens2) -> dif ens1 y
-  | AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+  | Ce(x,y) when (appartient x ens2) -> dif y ens2
+  | Ce(x,y) -> Ce(x, dif y ens2)
+;;
+
+assert(dif (Ce(2, Ve)) (Ce(2, Ce(1, Ve))) = Ve);; (* - : unit = () *)
+assert(dif (Ce(1., Ce(2., Ve))) (Ce(3., Ce(4., Ve))) = (Ce(1., Ce(2., Ve))));; (* - : unit = () *)
+assert(dif (Ce("Hello",Ce("IamAI",Ve))) (Ce("Hello",Ce("World",Ve))) = Ce("IamAI",Ve));; (* - : unit = () *)
   
+  
+(* Différence symétrique
+|SPÉCIFICATION
+| - Profil difsym ∶ 'a ensemble -> 'a ensemble -> 'a ensemble
+| - Sémantique : (difsym ens1 ens2) est l’union ens1 ens2 privé de l'intersection ens1 ens2, c’est-à-dire l’ensemble des éléments appartenant à ens1 et ens2 mais pas aux deux.
+| - Exemple 
+|   (1) difsym (Ce(2, Ve)) (Ce(2, Ce(1, Ve))) = (Ce(1, Ve))
+|   (2) difsym (Ce(2., Ce(1., Ve))) (Ce(3., Ce(4., Ve))) = (Ce(1., Ce(2., Ce( 3. , Ce( 4., Ve )))))
+|   (3) difsym (Ce("Hello", Ce("John", Ve))) (Ce("Hello",Ce("World",Ve))) = (Ce("John", Ce("World", Ve)))
+|REALISATION
+| - Implémentation :
 *)
+let difsym (ens1 : 'a ensemble) (ens2 : 'a ensemble) : 'a ensemble =
+    dif (union ens1 ens2) (intersection ens1 ens2)
+;;
 
-
-
-
-
+assert( difsym (Ce(2, Ve)) (Ce(2, Ce(1, Ve))) = (Ce(1, Ve)) );;
+assert( difsym (Ce(2., Ce(1., Ve))) (Ce(3., Ce(4., Ve))) = (Ce(1., Ce(2., Ce( 3. , Ce( 4., Ve ))))) );;
+assert( difsym (Ce("Hello", Ce("John", Ve))) (Ce("Hello",Ce("World",Ve))) = (Ce("John", Ce("World", Ve))) );;
 
