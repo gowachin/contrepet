@@ -45,7 +45,7 @@ assert(cardinal(Ce ("hello", Ce ("world", Ve))) = 2);; (* - : unit = () *)
 | - Exemple :
 |   (1) appartient 1 (Ce (1, Ce (2, Ve))) = true
 |   (2) appartient 3. (Ce (1., Ce (2., Ce (4., Ve)))) = false
-|   (3) appartient false (Ce (true, Ce (true, Ce (false, Ve)))) = true
+|   (3) appartient false (Ce (true, Ce (false, Ve))) = true
 |REALISATION
 | - Implémentation :
 *)
@@ -61,7 +61,7 @@ let rec appartient (elt: 'a) (ens: 'a ensemble) : bool =
   assert(appartient false (Ce (true, Ce (false, Ve))));; (* - : unit = () *)
   assert(not(appartient "ahel" (Ce ("hello", Ce ("world", Ve)))));; (* - : unit = () *)
 
-  
+
 (* Inclusion *)
 (* 
 |SPÉCIFICATION
@@ -183,9 +183,9 @@ let rec intersection (ens1 : 'a ensemble) (ens2 : 'a ensemble) : 'a ensemble =
         | Ve -> Ve   
 ;;
 
-assert( intersection (Ce(1, Ce(2, Ve))) (Ce(2, Ce(1, Ve))) = (Ce(1, Ce(2, Ve))) );; (* - : unit = () *)
-assert( intersection Ve Ve = Ve );; (* - : unit = () *)
-assert(  intersection (Ce("Hello",Ve)) (Ce("Hello",Ce("World",Ve))) = (Ce("Hello",Ve)) );; (* - : unit = () *)
+assert(intersection (Ce(1, Ce(2, Ve))) (Ce(2, Ce(1, Ve))) = (Ce(1, Ce(2, Ve))) );; (* - : unit = () *)
+assert(intersection Ve Ve = Ve );; (* - : unit = () *)
+assert(intersection (Ce("Hello",Ve)) (Ce("Hello",Ce("World",Ve))) = (Ce("Hello",Ve)) );; (* - : unit = () *)
     
 
 (* Union
@@ -233,7 +233,7 @@ assert(dif (Ce(2, Ve)) (Ce(2, Ce(1, Ve))) = Ve);; (* - : unit = () *)
 assert(dif (Ce(1., Ce(2., Ve))) (Ce(3., Ce(4., Ve))) = (Ce(1., Ce(2., Ve))));; (* - : unit = () *)
 assert(dif (Ce("Hello",Ce("IamAI",Ve))) (Ce("Hello",Ce("World",Ve))) = Ce("IamAI",Ve));; (* - : unit = () *)
   
-  
+
 (* Différence symétrique
 |SPÉCIFICATION
 | - Profil difsym ∶ 'a ensemble -> 'a ensemble -> 'a ensemble
