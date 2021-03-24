@@ -10,8 +10,8 @@
 
 (* -------------- Partie 2 : Ensemble --------------*)
 
-#use inf201_Dupre_Jaunatre_Raspail_projet_Q1.ml
+#use "inf201_Dupre_Jaunatre_Raspail_projet_Q1.ml"
 
 (* ---------- Partie 3 : Q2 Réusinage : listes OCaml et ordre supérieur  ----------*)
 
-#use inf201_Dupre_Jaunatre_Raspail_projet_Q2.ml
+#use "inf201_Dupre_Jaunatre_Raspail_projet_Q2.ml"
