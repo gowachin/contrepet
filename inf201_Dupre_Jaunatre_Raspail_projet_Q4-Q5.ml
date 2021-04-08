@@ -1,5 +1,5 @@
 (* ---------------------------------------------------------------------------
- inf201_Dupre_Jaunatre_Raspail_projet_partie2.ml : Projet d'INF201
+ inf201_Dupre_Jaunatre_Raspail_projet_Q4-Q5.ml : Projet d'INF201
 
  Alexandre Dupré <alexandre.dupre@etu.univ-grenoble-alpes.fr> \
  Maxime Jaunatre <maxime.jaunatre@etu.univ-grenoble-alpes.fr>  > Groupe D
@@ -59,7 +59,7 @@ let rec occurrence (x:'a) (mens:'a multiensemble): int=
   match mens with
   | [] -> 0
   | (elt,nb)::fin when elt=x -> nb
-  | (elt,nb)::fin -> occurence x fin
+  | (elt,nb)::fin -> occurrence x fin
 ;;
 
 assert(occurrence 'm' [('u', 2);('m', 5)] = 5);; (* - : unit = () *)
