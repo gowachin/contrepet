@@ -130,8 +130,8 @@ let rec ajoutem (melt: 'a multielement) (mens: 'a multiensemble) : 'a multiensem
   let (s,o)= melt in 
     match mens with
     | [] when o > 0 -> melt::mens
-    | (elt,nb)::fin when elt = s -> (elt,o+nb)::fin
-    | (elt, nb)::fin -> ajoutem melt fin
+    | (elt,nb)::fin when elt = s -> [(elt,o+nb)]@fin
+    | melt2::fin -> (ajoutem melt fin)@[melt2]
     | [] -> []
 ;;
 
@@ -139,32 +139,32 @@ assert(ajoutem (3,1) [(1,2)] = [(3,1);(1,2)]);; (* - : unit = () *)
 assert(ajoutem (3,1) [] = [(3,1)]);; (* - : unit = () *)
 assert(ajoutem ("Immortal", 1) [("Immortal", 1)] = [("Immortal", 2)]);; (* - : unit = () *)
 
-
 (* Suppression
 |SPÉCIFICATION
-| - Profil supprimem ∶ 'a -> 'a ensemble -> 'a ensemble 
+| - Profil supprimem ∶ 'a multielement -> 'a multiensemble -> 'a multiensemble 
 | - Sémantique :  (supprimem (x, n) mens) supprime n occurrences du support x du multi-ensemble
 | mens. Si n est supérieur ou égal au nombre d’occurrences de x dans mens, alors x
 | disparaît complètement de mens. Selon le besoin, il pourra être pratique d’implémenter en plus la fonctionalité suivante : si 𝑛 = 0, toutes les occurrences de x sont
 | supprimées ().
 | - Exemple 
-|   (1) supprimem 3 [1;3] = [1]
-|   (2) supprimem "hello" ["world";"hello"] = ["world"]
-|   (3) supprimem false [true;false] = [true]
+|   (1) supprimem ('m' ,2) [('m',3);('n',1);('a',23)] = [('m',1);('n',1);('a',23)]
+|   (2) supprimem (3,3) [(3,1);(1,2)] = [(1,2)]
+|   (3) supprimem (false,0) [(true,1);(false,1)] = [(true,1)]
 |REALISATION
 | - Implémentation :
 *)
 let rec supprimem (melt:'a multielement) (mens:'a multiensemble) : 'a multiensemble =
-  if not(appartient melt mens) then mens else
+    let x,n = melt in 
     match mens with
     | [] -> []
-    | (x,n)
+    | (x1,n1)::fin when x=x1 -> if (n>=n1)||(n=0) then supprimem melt fin else [(x1,n1-n)]@fin
+    | melt2::fin -> [melt2]@(supprimem melt fin)
 ;;
-
-assert(supprime 3 [1;3] = [1]);; (* - : unit = () *)
-assert(supprime "hello" ["world";"hello"] = ["world"]);; (* - : unit = () *)
-assert(supprime false [true;false] = [true]);; (* - : unit = () *)
-assert(supprime "pas" ["Je";"suis";"pas";"fort";"en";"ocaml"] = ["Je";"suis";"fort";"en";"ocaml"]);; (* - : unit = () *)
+  
+assert(supprimem (3,1) [(1,2);(3,1)] = [(1,2)]);; (* - : unit = () *)
+assert(supprimem ('m' ,2) [('m',3);('n',1);('a',23)] = [('m',1);('n',1);('a',23)]);; (* - : unit = () *)
+assert(supprimem (false,0) [(true,1);(false,1)] = [(true,1)]);; (* - : unit = () *)
+assert(supprimem ("pas",1) [("Je",1);("suis",1);("pas",1);("fort",1);("en",1);("ocaml",1)] = [("Je",1);("suis",1);("fort",1);("en",1);("ocaml",1)]);; (* - : unit = () *)
 
   
 (* Egalité
@@ -174,111 +174,118 @@ assert(supprime "pas" ["Je";"suis";"pas";"fort";"en";"ocaml"] = ["Je";"suis";"fo
 | - Exemple 
 |   (1) egauxm [(1,1);(2,3)] [(2,3);(1,1)] = true
 |   (2) egauxm [] [] = true
-|   (3) egauxm [("Hello",1)] [("Hello",1),("World",2)] = false
-|   (3) egauxm [('c',2),('a',1)] [('c',2),('a',2)] = false
+|   (3) egauxm [("Hello",1)] [("Hello",1);("World",2)] = false
+|   (3) egauxm [('c',2);('a',1)] [('c',2);('a',2)] = false
 |REALISATION
 | - Implémentation :
 *)
-let rec egaux (mens1:'a multiensemble) (mens2:'a multiensemble):bool =
+let rec egauxm (mens1:'a multiensemble) (mens2:'a multiensemble):bool =
   if (cardinalm mens1) <> (cardinalm mens2) then false
   else
     match mens1 with
-    | melt::fin -> (appartient melt mens2) && (egaux fin (supprime x ens2))
+    | (elt,nb)::fin -> if (occurrence elt mens2)=nb then (egauxm fin (supprimem (elt,nb) mens2)) else false
     | [] -> true
-;;
+;; 
   
-assert(egaux [] []);; (* - : unit = () *)
-assert(egaux [1;2] [2;1]);; (* - : unit = () *)
-assert(not (egaux ["Hello"] ["Hello";"World"]));; (* - : unit = () *)
-assert(not (egaux [1;2;3] [2;1]));; (* - : unit = () *)
+assert(egauxm [] []);; (* - : unit = () *)
+assert(egauxm [(1,1);(2,3)] [(2,3);(1,1)]);;(* - : unit = () *)
+assert(not (egauxm [("Hello",1)] [("Hello",1);("World",2)]));;(* - : unit = () *)
+assert(not (egauxm [('c',2);('a',1)] [('c',2);('a',2)]));;(* - : unit = () *)
 
 
 (* Intersection
 |SPÉCIFICATION
-| - Profil intersection ∶ 'a ensemble -> 'a ensemble -> 'a ensemble 
-| - Sémantique : intersection (ens1 ens2) renvois l'ensemble avec seulement les éléments compris dans les deux ensembles précisés
+| - Profil intersectionm ∶ 'a multiensemble -> 'a multiensemble -> 'a mutiensemble 
+| - Sémantique : (intersectionm mens1 mens2) est le multi-ensemble des éléments appartenant à la fois à mens1 et à mens2.
 | - Exemple 
-|   (1) intersection [1;2] [2;1] = [1;2]
-|   (2) intersection [] [] = []
-|   (3) intersection ["Hello"] ["Hello";"World"] = ["Hello"]
+|   (1) intersectionm [('m', 3) ; ('u', 1)] [('m', 1) ; ('a', 1)] = [('m', 1)]
+|   (2) intersectionm [] [] = []
+|   (3) intersectionm [("Bonjour",2)] [("Hello",3);("World",1)] = []
 |REALISATION
 | - Implémentation :
 *)
-let rec intersection (ens1 : 'a ensemble) (ens2 : 'a ensemble) : 'a ensemble =
-    if egaux ens1 ens2 then ens1
+let rec intersectionm (mens1 : 'a multiensemble) (mens2 : 'a multiensemble) : 'a multiensemble =
+    if egauxm mens1 mens2 then mens1
     else
-        match ens1 with
-        | x::y -> if not (appartient x ens2) then intersection y ens2 else x::intersection y ens2
-        | [] -> []   
+        match mens1 with
+        | [] -> []
+        | (elt,nb)::fin -> if (occurrence elt mens2)=0
+          then intersectionm fin mens2
+          else [(elt,min nb (occurrence elt mens2))]@(intersectionm fin mens2)
 ;;
 
-assert(intersection [1;2] [2;1] = [1;2]);; (* - : unit = () *)
-assert(intersection [] [] = [] );; (* - : unit = () *)
-assert(intersection ["Hello"] ["Hello";"World"] = ["Hello"]);; (* - : unit = () *)
-    
+assert(intersectionm [('m', 3) ; ('u', 1)] [('m', 1) ; ('a', 1)] = [('m', 1)]);; (* - : unit = () *)
+assert(intersectionm [] [] = [] );; (* - : unit = () *)
+assert(intersectionm [("Bonjour",2)] [("Hello",3);("World",1)] = []);; (* - : unit = () *)
 
 (* Union
 |SPÉCIFICATION
-| - Profil union ∶ 'a ensemble -> 'a ensemble -> 'a ensemble
-| - Sémantique : (union ens1 ens2) est l’ensemble ens1 ∪ ens2, c’est-à-dire l’ensemble des éléments appartenant à ens1 ou à ens2.
+| - Profil unionm ∶ 'a multiensemble -> 'a multiensemble -> 'a multiensemble
+| - Sémantique : (unionm mens1 ens2) est l’ensemble mens1 ∪ mens2, c’est-à-dire l’ensemble des éléments appartenant à mens1 ou à mens2.
 | - Exemple 
-|   (1) union [1;2] [2;1] = [2;1]
-|   (2) union [2;1] [3;4] = [1;2;3;4]
-|   (3) union ["Hello"] ["Hello";"World"] = ["Hello";"World"]
+|   (1) unionm [(1,1);(2,2)] [(2,2);(1,1)] = [(2,2);(1,1)]
+|   (2) unionm [(2,1);(1,1)] [(3,3);(4,4)] = [(1,1);(2,2);(3,3);(4,4)]
+|   (3) unionm [("Hello", 1)] [("Hello",1);("World",1)] = [("Hello",1);("World",1)]
+|   (4) unionm [("Hello", 2)] [("Hello",1);("World",1)] = [("Hello",2);("World",1)]
 |REALISATION
 | - Implémentation :
 *)
-let rec union (ens1:'a ensemble) (ens2:'a ensemble):'a ensemble =
-  match ens1 with
-  | x::y -> union y (ajoute x ens2)
-  | [] -> ens2
+let rec unionm (mens1:'a multiensemble) (mens2:'a multiensemble):'a multiensemble =
+  if egauxm mens1 mens2 then mens1
+  else
+    match mens1 with
+    | [] -> mens2
+    | (elt,nb)::fin -> if (occurrence elt mens2)=0
+      then [(elt,nb)]@(unionm fin mens2)
+      else unionm [(elt,max nb (occurrence elt mens2))] (unionm fin (supprimem (elt,(occurrence elt mens2)) mens2)  ) 
 ;;
 
-assert(union [1;2] [2;1] = [2;1]);; (* - : unit = () *)
-assert(union [2;1] [3;4] = [1;2;3;4]);; (* - : unit = () *)
-assert(union ["Hello"] ["Hello";"World"] = ["Hello";"World"]);; (* - : unit = () *)
+assert(unionm [(1,1);(2,2)] [(2,2);(1,1)] = [(1,1); (2,2)]);; (* - : unit = () *)
+assert(unionm [(2,2);(1,1)] [(3,3);(4,4)] = [(2,2);(1,1);(3,3);(4,4)]);; (* - : unit = () *)
+assert(unionm [("Hello", 1)] [("Hello",1);("World",1)] = [("Hello",1);("World",1)]);; (* - : unit = () *)
+assert(unionm [("Hello", 2)] [("Hello",1);("World",1)] = [("Hello",2);("World",1)]);; (* - : unit = () *)
+assert(unionm [("Hello",3);("John",1)] [("Hello",2);("World",1)] = [("Hello", 3); ("John", 1); ("World", 1)]);; (* - : unit = () *)
 
   
 (* Différence
 |SPÉCIFICATION
-| - Profil dif ∶ 'a ensemble -> 'a ensemble -> 'a ensemble
-| - Sémantique : (dif ens1 ens2) est l’ensemble ens1 privé de ens2, c’est-à-dire l’ensemble des éléments appartenant à ens1 mais pas ens2.
+| - Profil difm ∶ 'a multiensemble -> 'a multiensemble -> 'a ensemble
+| - Sémantique : (difm mens1 mens2) est le multi-ensemble obtenu en supprimant les multiéléments appartenant à mens2 de mens1
 | - Exemple 
-|   (1) dif [2] [2;1] = []
-|   (2) dif [1;2] [3;4] = [1;2]
-|   (3) dif ["Hello";"IamAI"] ["Hello";"World"] = ["IamAI"]
+|   (1) difm [(2,3);(3,1);(4,1)] [(2,2);(3,1);(6,1)] = [(2,3);(4,1)]
+|   (2) difm [(2,1);(3,1);(4,1)] [(2,2);(3,1);(6,1)] = [(4,1)]
+|   (3) difm [("Hello",1);("IamAI",2)] [("Hello",3);("World",1)] = [("IamAI",2)]
 |REALISATION
 | - Implémentation :
 *)
-let rec dif (ens1 : 'a ensemble) (ens2 : 'a ensemble) : 'a ensemble =
-  if egaux ens1 ens2 then [] else
-  match ens1 with
+let rec difm (mens1 : 'a multiensemble) (mens2 : 'a multiensemble) : 'a multiensemble =
+  if egauxm mens1 mens2 then [] else
+  match mens1 with
   | [] -> []
-  | x::y when (appartient x ens2) -> dif y ens2
-  | x::y -> [x]@dif y ens2
+  | melt1::melt2 when (appartientm melt1 mens2) -> difm melt2 mens2
+  | melt1::melt2 -> [melt1]@difm melt2 mens2
 ;;
 
-assert(dif [2] [2;1] = []);; (* - : unit = () *)
-assert(dif [1;2] [3;4] = [1;2]);; (* - : unit = () *)
-assert(dif ["Hello";"IamAI"] ["Hello";"World"] = ["IamAI"]);; (* - : unit = () *)
+assert(difm [(2,3);(3,1);(4,1)] [(2,2);(3,1);(6,1)] = [(2,3);(4,1)]);; (* - : unit = () *)
+assert(difm [(2,1);(3,1);(4,1)] [(2,2);(3,1);(6,1)] = [(4,1)]);; (* - : unit = () *)
+assert(difm [("Hello",1);("IamAI",2)] [("Hello",3);("World",1)] = [("IamAI",2)]);; (* - : unit = () *)
   
 
 (* Différence symétrique
 |SPÉCIFICATION
-| - Profil difsym ∶ 'a ensemble -> 'a ensemble -> 'a ensemble
-| - Sémantique : (difsym ens1 ens2) est l’union ens1 ens2 privé de l'intersection ens1 ens2, c’est-à-dire l’ensemble des éléments appartenant à ens1 et ens2 mais pas aux deux.
+| - Profil difsymm ∶ 'a multiensemble -> 'a multiensemble -> 'a multiensemble
+| - Sémantique : (difsymm mens1 mens2) est le multi-ensemble des multi-éléments qui appartiennent soit à mens1, soit à mens2, mais pas au deux à la fois.
 | - Exemple 
-|   (1) difsym (Ce(2, Ve)) (Ce(2, Ce(1, Ve))) = (Ce(1, Ve))
-|   (2) difsym (Ce(2., Ce(1., Ve))) (Ce(3., Ce(4., Ve))) = (Ce(1., Ce(2., Ce( 3. , Ce( 4., Ve )))))
-|   (3) difsym (Ce("Hello", Ce("John", Ve))) (Ce("Hello",Ce("World",Ve))) = (Ce("John", Ce("World", Ve)))
+|   (1) difsymm [(2,1)] [(2,2);(1,3)] = [(2, 2); (1, 3)]
+|   (2) difsymm [(2,1);(1,1)] [(3,2);(4,5)] = [(2, 1); (1, 1); (3, 2); (4, 5)]
+|   (3) difsymm [("Hello",3);("John",1)] [("Hello",2);("World",1)] = [("Hello", 3); ("John", 1); ("World", 1)]
 |REALISATION
 | - Implémentation :
 *)
-let difsym (ens1 : 'a ensemble) (ens2 : 'a ensemble) : 'a ensemble =
-    dif (union ens1 ens2) (intersection ens1 ens2)
+let difsymm (mens1 : 'a multiensemble) (mens2 : 'a multiensemble) : 'a multiensemble =
+  difm (unionm mens1 mens2) (intersectionm mens1 mens2)
 ;;
 
-assert(difsym [2] [2;1] = [1] );; (* - : unit = () *)
-assert(difsym [2;1] [3;4] = [1;2;3;4]);; (* - : unit = () *)
-assert(difsym ["Hello";"John"] ["Hello";"World"] = ["John";"World"]);; (* - : unit = () *)
-
+assert(difsymm [(2,1)] [(2,2);(1,3)] = [(2, 2); (1, 3)] );; (* - : unit = () *)
+assert(difsymm [(2,1);(1,1)] [(3,2);(4,5)] = [(2, 1); (1, 1); (3, 2); (4, 5)]);; (* - : unit = () *)
+assert(difsymm [("Hello",3);("John",1)] [("Hello",2);("World",1)] = [("Hello", 3); ("John", 1); ("World", 1)]);; (* - : unit = () *)
