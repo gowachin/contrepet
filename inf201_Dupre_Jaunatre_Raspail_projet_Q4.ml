@@ -14,136 +14,151 @@
 
 (* Définition des types *)
 
-type 'a mutlielement = 'a list ;;
-type 'a multiensemble = 'a list ;;
-
+type 'a multielement = 'a * int ;;
+type 'a multiensemble = 'a multielement list ;;
 
 
 (* Q5. Réalisation des fonctions *)
 
 (* Cardinalité
 |SPÉCIFICATION 
-| - Profil cardinal ∶ 'a ensemble -> int
-| - Sémantique : cardinal(ens) renvois le nombre d'éléments dans l'ensemble ens.
+| - Profil cardinalm ∶ 'a multiensemble -> int
+| - Sémantique : cardinalm(mens) renvois le nombre d'éléments dans le multi-ensemble mens ainsi que le nombre total d'occurence des éléments.
 | - Exemple :
-|   (1) cardinal [1] = 1
-|   (2) caridnal [] = 0
-|   (3) cardinal [1;2] = 2 
+|   (1) cardinalm [(1,1)] = (1,1)
+|   (2) caridnalm [] = (0, 0)
+|   (3) cardinalm [(1,1);(2,2)] = (2,3) 
 |REALISATION
 | - Implémentation :
 *)
-let rec cardinal (ens:'a ensemble) : int =
-    match ens with
-    | [] -> 0
-    | x::fin -> 1 + (cardinal fin)
+let rec cardinalm (mens:'a multiensemble) : int * int =
+    match mens with
+    | [] -> 0, 0
+    | (x, n)::fin -> let(a,b) = (cardinalm fin) in 1+a, n+b
 ;;
 
-assert(cardinal [] = 0);; (* - : unit = () *)
-assert(cardinal [1] = 1);; (* - : unit = () *)
-assert(cardinal [1;2] = 2);; (* - : unit = () *)
-assert(cardinal [1,5;3,14] = 2);; (* - : unit = () *)
-assert(cardinal ["hello";"world"] = 2);; (* - : unit = () *)
+assert(cardinalm [] = (0,0));; (* - : unit = () *)
+assert(cardinalm [(1,1)] = (1,1));; (* - : unit = () *)
+assert(cardinalm [(1,1);(2,2)] = (2,3));; (* - : unit = () *)
+assert(cardinalm [(1, 2);(5,2);(3,2);(14, 2)] = (4, 8));; (* - : unit = () *)
+assert(cardinalm [("hello",20);("world", 22)] = (2, 42));; (* - : unit = () *)
 
 
 (* Occurence
 |Spécification
-|REALISATION
-| - Implémentation :
-*)
-
-(*Appartenance*)
-(*
-|SPÉCIFICATION
-| - Profil appartient ∶ 'a -> 'a ensemble -> bool
-| - Sémantique : appartient(elt ens) indique si l'élément elt appartient à l'ensemble ens
+| - Profil occurrence ∶ 'a -> 'a multiensemble -> int
+| - Sémantique : (occurrence x mens) est le nombre d’occurrences du support x dans mens.
 | - Exemple :
-|   (1) appartient 1 [1;2] = true
-|   (2) appartient 3. [1.;2.;4.] = false
-|   (3) appartient false [true;false] = true
+|   (1) occurrence 'm' [('u', 2);('m', 5)] = 5
+|   (2) occurrence 2 [(2, 2);(1, 3)] = 2
+|   (3) occurrence true [(true, 1);(false, 5)] = 1
 |REALISATION
 | - Implémentation :
 *)
-let rec appartient (elt: 'a) (ens: 'a ensemble) : bool =
-  match ens with
-  | [] -> false
-  | x::y when x = elt -> true
-  | x::y -> false || appartient elt y 
+let rec occurrence (x:'a) (mens:'a multiensemble): int=
+  match mens with
+  | [] -> 0
+  | (elt,nb)::fin when elt=x -> nb
+  | (elt,nb)::fin -> occurence x fin
 ;;
 
-  assert(appartient 1 [1;2]);; (* - : unit = () *)
-  assert(not (appartient 3. [1.;2.;4.]));; (* - : unit = () *)
-  assert(appartient false [true;false]);; (* - : unit = () *)
-  assert(not(appartient "ahel" ["hello";"world"]));; (* - : unit = () *)
+assert(occurrence 'm' [('u', 2);('m', 5)] = 5);; (* - : unit = () *)
+assert(occurrence 2 [(2, 2);(1, 3)] = 2);; (* - : unit = () *)
+assert(occurrence true [(true, 1);(false, 5)] = 1);; (* - : unit = () *)
+
+
+(* Appartenance *)
+(*
+|SPÉCIFICATION
+| - Profil appartientm ∶ 'a multielement -> 'a multiensemble -> bool
+| - Sémantique : (appartientm melt mens) est vrai si et seulement si la multiplicité de melt est
+inférieure ou égale au nombre d’occurences de son support dans mens
+| - Exemple :
+|   (1) appartientm ('m',4) [('u', 2);('m', 5)] = true
+|   (2) appartientm (3,1) [(2, 2);(1, 3)] = false
+|   (3) appartientm (true,2) [(true, 1);(false, 5)] = false
+|REALISATION
+| - Implémentation :
+*)
+let appartientm (melt: 'a multielement) (mens: 'a multiensemble) : bool =
+  let (s,m) = melt in m <= (occurrence s mens)
+;;
+
+  assert(appartientm ('m',4) [('u', 2);('m', 5)]);; (* - : unit = () *)
+  assert(not (appartientm (3,1) [(2, 2);(1, 3)]));; (* - : unit = () *)
+  assert(not(appartientm (true,2) [(true, 1);(false, 5)]));; (* - : unit = () *)
 
 
 (* Inclusion *)
 (* 
 |SPÉCIFICATION
-| - Profil inclus ∶ 'a ensemble -> 'a ensemble -> bool
-| - Sémantique : (inclus ens1 ens2) est vrai si et seulement si ens1 inclus dans ens2
+| - Profil inclusm ∶ 'a multiensemble -> 'a multiensemble -> bool
+| - Sémantique : (inclusm mens1 mens2) est vrai si et seulement si tout élément de mens2 appartient à mens2.
 | - Exemple :
-|   (1) inclus [1] [1;2] = true
-|   (2) inclus [1] [2;3] = false
-|   (3) inclus [] [] = true
+|   (1) inclusm [('u',1)] [('u',1);('m',2)] = true
+|   (2) inclusm [('u',1)] [('u',5);('m',2)] = true
+|   (3) inclusm [('u',5)] [('u',1);('m',2)] = false
 |REALISATION
 | - Implémentation :
 *)
-let rec inclus (e1:'a ensemble) (e2:'a ensemble): bool =
-  match e1 with
-  | x::y -> appartient x e2 && inclus y e2
+let rec inclusm (mens1:'a multiensemble) (mens2:'a multiensemble): bool =
+  match mens1 with
+  | melt::fin -> appartientm melt mens2 && inclusm fin mens2
   | [] -> true
 ;;
 
-assert(inclus [1] [1;2]);; (* - : unit = () *)
-assert(not (inclus [1] [2;3]));; (* - : unit = () *)
-assert(not (inclus ["Never";"Gonna";"Give"] ["You";"Up"]));; (* - : unit = () *)
+assert(not (inclusm [(2,1)] [(3,1);(4,2)]));; (* - : unit = () *)
+assert(inclusm [('u',1)] [('u',1);('m',2)]);; (* - : unit = () *)
+assert(inclusm [('u',1)] [('u',5);('m',2)]);; (* - : unit = () *)
+assert(not (inclusm [('u',5)] [('u',1);('m',2)]));; (* - : unit = () *)
 
 
 (* Ajout
 |SPÉCIFICATION
-| - Profil ajoute ∶ 'a -> 'a ensemble -> 'a ensemble 
-| - Sémantique : ajoute(a ens) Ajoute un élément a à un ensemble ens respectant la contrainte de non répétition des éléments
+| - Profil ajoutem ∶ 'a multielement -> 'a multiensemble -> 'a multiensemble 
+| - Sémantique : ajoutem(a ens) Ajoute un élément a à un ensemble ens respectant la contrainte de non répétition des éléments
 |                Dépend de inclusion
 | - Exemple 
-|   (1) ajoute 3 [1] = [3;1]
-|   (2) ajoute "hello" ["world"] = ["hello";"world"]
-|   (3) ajoute 3 [] = [3]
-|   (4) ajoute "Immortal" ["Immortal"] = ["Immortal"]
+|   (1) ajoutem (3,1) [(1,2)] = [(3,1);(1,2)]
+|   (2) ajoutem ("hello",1) [("world", 1)] = [("hello", 1);("world",1)]
+|   (3) ajoutem (3,1) [] = [(3,1)]
+|   (4) ajoutem ("Immortal", 1) [("Immortal", 1)] = [("Immortal", 2)]
 |REALISATION
 | - Implémentation :
 *)
-let ajoute (elt: 'a) (ens: 'a ensemble) : 'a ensemble =
-    if appartient elt ens then
-        ens
-    else 
-        elt::ens
+let rec ajoutem (melt: 'a multielement) (mens: 'a multiensemble) : 'a multiensemble =
+  let (s,o)= melt in 
+    match mens with
+    | [] when o > 0 -> melt::mens
+    | (elt,nb)::fin when elt = s -> (elt,o+nb)::fin
+    | (elt, nb)::fin -> ajoutem melt fin
+    | [] -> []
 ;;
 
-assert(ajoute 3 [1] = [3;1]);; (* - : unit = () *)
-assert(ajoute 3 [] = [3]);; (* - : unit = () *)
-assert(ajoute "Immortal" ["Immortal"] = ["Immortal"]);; (* - : unit = () *)
+assert(ajoutem (3,1) [(1,2)] = [(3,1);(1,2)]);; (* - : unit = () *)
+assert(ajoutem (3,1) [] = [(3,1)]);; (* - : unit = () *)
+assert(ajoutem ("Immortal", 1) [("Immortal", 1)] = [("Immortal", 2)]);; (* - : unit = () *)
 
 
 (* Suppression
 |SPÉCIFICATION
-| - Profil supprime ∶ 'a -> 'a ensemble -> 'a ensemble 
-| - Sémantique : supprime(a ens) enlève l'élément a de l'ensemble ens
+| - Profil supprimem ∶ 'a -> 'a ensemble -> 'a ensemble 
+| - Sémantique :  (supprimem (x, n) mens) supprime n occurrences du support x du multi-ensemble
+| mens. Si n est supérieur ou égal au nombre d’occurrences de x dans mens, alors x
+| disparaît complètement de mens. Selon le besoin, il pourra être pratique d’implémenter en plus la fonctionalité suivante : si 𝑛 = 0, toutes les occurrences de x sont
+| supprimées ().
 | - Exemple 
-|   (1) supprime 3 [1;3] = [1]
-|   (2) supprime "hello" ["world";"hello"] = ["world"]
-|   (3) supprime false [true;false] = [true]
+|   (1) supprimem 3 [1;3] = [1]
+|   (2) supprimem "hello" ["world";"hello"] = ["world"]
+|   (3) supprimem false [true;false] = [true]
 |REALISATION
 | - Implémentation :
 *)
-let rec supprime (elt:'a) (ens:'a ensemble) : 'a ensemble =
-  if not(appartient elt ens) then ens else
-    match ens with
+let rec supprimem (melt:'a multielement) (mens:'a multiensemble) : 'a multiensemble =
+  if not(appartient melt mens) then mens else
+    match mens with
     | [] -> []
-    | x::[] when x = elt -> []
-    | x::[] -> [x]
-    | x::y::z when y = elt -> [x]@z
-    | x::y::z when x = elt -> [y]@z
-    | x::y-> [x]@(supprime elt y)
+    | (x,n)
 ;;
 
 assert(supprime 3 [1;3] = [1]);; (* - : unit = () *)
@@ -154,20 +169,21 @@ assert(supprime "pas" ["Je";"suis";"pas";"fort";"en";"ocaml"] = ["Je";"suis";"fo
   
 (* Egalité
 |SPÉCIFICATION
-| - Profil egaux ∶ 'a ensemble -> 'a ensemble -> bool
-| - Sémantique : (egaux ens1 ens2) est vrai si et seulement si ens1 et ens1 ont les mêmes éléments.
+| - Profil egauxm ∶ 'a multiensemble -> 'a multiensemble -> bool
+| - Sémantique : (egaux mens1 mens2) est vrai si et seulement si mens1 et mens2 ont les mêmes multi-éléments.
 | - Exemple 
-|   (1) egaux [1;2] [2;1] = true
-|   (2) egaux [] [] = true
-|   (3) egaux ["Hello"] ["Hello","World"] = false
+|   (1) egauxm [(1,1);(2,3)] [(2,3);(1,1)] = true
+|   (2) egauxm [] [] = true
+|   (3) egauxm [("Hello",1)] [("Hello",1),("World",2)] = false
+|   (3) egauxm [('c',2),('a',1)] [('c',2),('a',2)] = false
 |REALISATION
 | - Implémentation :
 *)
-let rec egaux (ens1:'a ensemble) (ens2:'a ensemble):bool =
-  if (cardinal ens1) <> (cardinal ens2) then false
+let rec egaux (mens1:'a multiensemble) (mens2:'a multiensemble):bool =
+  if (cardinalm mens1) <> (cardinalm mens2) then false
   else
-    match ens1 with
-    | x::y -> (appartient x ens2) && (egaux y (supprime x ens2))
+    match mens1 with
+    | melt::fin -> (appartient melt mens2) && (egaux fin (supprime x ens2))
     | [] -> true
 ;;
   
