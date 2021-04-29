@@ -62,6 +62,7 @@ let rec occurrence (x:'a) (mens:'a multiensemble): int=
   | (elt,nb)::fin -> occurrence x fin
 ;;
 
+assert(occurrence 'm' [] = 0);; (* - : unit = () *)
 assert(occurrence 'm' [('u', 2);('m', 5)] = 5);; (* - : unit = () *)
 assert(occurrence 2 [(2, 2);(1, 3)] = 2);; (* - : unit = () *)
 assert(occurrence true [(true, 1);(false, 5)] = 1);; (* - : unit = () *)
@@ -72,7 +73,7 @@ assert(occurrence true [(true, 1);(false, 5)] = 1);; (* - : unit = () *)
 |SPÉCIFICATION
 | - Profil appartientm ∶ 'a multielement -> 'a multiensemble -> bool
 | - Sémantique : (appartientm melt mens) est vrai si et seulement si la multiplicité de melt est
-inférieure ou égale au nombre d’occurences de son support dans mens
+|        inférieure ou égale au nombre d’occurences de son support dans mens
 | - Exemple :
 |   (1) appartientm ('m',4) [('u', 2);('m', 5)] = true
 |   (2) appartientm (3,1) [(2, 2);(1, 3)] = false
@@ -84,9 +85,10 @@ let appartientm (melt: 'a multielement) (mens: 'a multiensemble) : bool =
   let (s,m) = melt in m <= (occurrence s mens)
 ;;
 
-  assert(appartientm ('m',4) [('u', 2);('m', 5)]);; (* - : unit = () *)
-  assert(not (appartientm (3,1) [(2, 2);(1, 3)]));; (* - : unit = () *)
-  assert(not(appartientm (true,2) [(true, 1);(false, 5)]));; (* - : unit = () *)
+assert(not (appartientm (1,1) []));; (* - : unit = () *)
+assert(appartientm ('m',4) [('u', 2);('m', 5)]);; (* - : unit = () *)
+assert(not (appartientm (3,1) [(2, 2);(1, 3)]));; (* - : unit = () *)
+assert(not(appartientm (true,2) [(true, 1);(false, 5)]));; (* - : unit = () *)
 
 
 (* Inclusion *)
@@ -107,6 +109,8 @@ let rec inclusm (mens1:'a multiensemble) (mens2:'a multiensemble): bool =
   | [] -> true
 ;;
 
+assert(inclusm [] [(3,1)]);; (* - : unit = () *)
+assert(not (inclusm [(3,1)] []));; (* - : unit = () *)
 assert(not (inclusm [(2,1)] [(3,1);(4,2)]));; (* - : unit = () *)
 assert(inclusm [('u',1)] [('u',1);('m',2)]);; (* - : unit = () *)
 assert(inclusm [('u',1)] [('u',5);('m',2)]);; (* - : unit = () *)
@@ -139,6 +143,7 @@ assert(ajoutem (3,1) [(1,2)] = [(3,1);(1,2)]);; (* - : unit = () *)
 assert(ajoutem (3,1) [] = [(3,1)]);; (* - : unit = () *)
 assert(ajoutem ("Immortal", 1) [("Immortal", 1)] = [("Immortal", 2)]);; (* - : unit = () *)
 
+
 (* Suppression
 |SPÉCIFICATION
 | - Profil supprimem ∶ 'a multielement -> 'a multiensemble -> 'a multiensemble 
@@ -161,9 +166,10 @@ let rec supprimem (melt:'a multielement) (mens:'a multiensemble) : 'a multiensem
     | melt2::fin -> [melt2]@(supprimem melt fin)
 ;;
   
-assert(supprimem (3,1) [(1,2);(3,1)] = [(1,2)]);; (* - : unit = () *)
+assert(supprimem (3,1) [] = []);; (* - : unit = () *)
+assert(supprimem (3,3) [(1,2);(3,1)] = [(1,2)]);; (* - : unit = () *)
 assert(supprimem ('m' ,2) [('m',3);('n',1);('a',23)] = [('m',1);('n',1);('a',23)]);; (* - : unit = () *)
-assert(supprimem (false,0) [(true,1);(false,1)] = [(true,1)]);; (* - : unit = () *)
+assert(supprimem (false,0) [(true,1);(false,2)] = [(true,1)]);; (* - : unit = () *)
 assert(supprimem ("pas",1) [("Je",1);("suis",1);("pas",1);("fort",1);("en",1);("ocaml",1)] = [("Je",1);("suis",1);("fort",1);("en",1);("ocaml",1)]);; (* - : unit = () *)
 
   
@@ -188,6 +194,7 @@ let rec egauxm (mens1:'a multiensemble) (mens2:'a multiensemble):bool =
 ;; 
   
 assert(egauxm [] []);; (* - : unit = () *)
+assert(not (egauxm [] [(2,3);(1,1)]));;(* - : unit = () *)
 assert(egauxm [(1,1);(2,3)] [(2,3);(1,1)]);;(* - : unit = () *)
 assert(not (egauxm [("Hello",1)] [("Hello",1);("World",2)]));;(* - : unit = () *)
 assert(not (egauxm [('c',2);('a',1)] [('c',2);('a',2)]));;(* - : unit = () *)
@@ -214,9 +221,11 @@ let rec intersectionm (mens1 : 'a multiensemble) (mens2 : 'a multiensemble) : 'a
           else [(elt,min nb (occurrence elt mens2))]@(intersectionm fin mens2)
 ;;
 
-assert(intersectionm [('m', 3) ; ('u', 1)] [('m', 1) ; ('a', 1)] = [('m', 1)]);; (* - : unit = () *)
 assert(intersectionm [] [] = [] );; (* - : unit = () *)
+assert(intersectionm [] [('m', 1) ; ('a', 1)] = []);; (* - : unit = () *)
+assert(intersectionm [('m', 3) ; ('u', 1)] [('m', 1) ; ('a', 1)] = [('m', 1)]);; (* - : unit = () *)
 assert(intersectionm [("Bonjour",2)] [("Hello",3);("World",1)] = []);; (* - : unit = () *)
+
 
 (* Union
 |SPÉCIFICATION
@@ -240,6 +249,8 @@ let rec unionm (mens1:'a multiensemble) (mens2:'a multiensemble):'a multiensembl
       else unionm [(elt,max nb (occurrence elt mens2))] (unionm fin (supprimem (elt,(occurrence elt mens2)) mens2)  ) 
 ;;
 
+assert(unionm [] [] = []);; (* - : unit = () *)
+assert(unionm [] [(2,2);(1,1)] = [(2,2);(1,1)]);; (* - : unit = () *)
 assert(unionm [(1,1);(2,2)] [(2,2);(1,1)] = [(1,1); (2,2)]);; (* - : unit = () *)
 assert(unionm [(2,2);(1,1)] [(3,3);(4,4)] = [(2,2);(1,1);(3,3);(4,4)]);; (* - : unit = () *)
 assert(unionm [("Hello", 1)] [("Hello",1);("World",1)] = [("Hello",1);("World",1)]);; (* - : unit = () *)
@@ -266,6 +277,9 @@ let rec difm (mens1 : 'a multiensemble) (mens2 : 'a multiensemble) : 'a multiens
   | melt1::melt2 -> [melt1]@difm melt2 mens2
 ;;
 
+assert(difm [] [] = []);; (* - : unit = () *)
+assert(difm [] [(2,2);(3,1);(6,1)] = []);; (* - : unit = () *)
+assert(difm [(2,3);(3,1);(4,1)] [] = [(2,3);(3,1);(4,1)]);; (* - : unit = () *)
 assert(difm [(2,3);(3,1);(4,1)] [(2,2);(3,1);(6,1)] = [(2,3);(4,1)]);; (* - : unit = () *)
 assert(difm [(2,1);(3,1);(4,1)] [(2,2);(3,1);(6,1)] = [(4,1)]);; (* - : unit = () *)
 assert(difm [("Hello",1);("IamAI",2)] [("Hello",3);("World",1)] = [("IamAI",2)]);; (* - : unit = () *)
@@ -286,6 +300,10 @@ let difsymm (mens1 : 'a multiensemble) (mens2 : 'a multiensemble) : 'a multiense
   difm (unionm mens1 mens2) (intersectionm mens1 mens2)
 ;;
 
+assert(difsymm [] [] = []);; (* - : unit = () *)
+assert(difsymm [(2,1)] [(2,1)] = []);; (* - : unit = () *)
+assert(difsymm [] [(2,2);(3,1);(6,1)] = [(2,2);(3,1);(6,1)]);; (* - : unit = () *)
+assert(difsymm [(2,3);(3,1);(4,1)] [] = [(2,3);(3,1);(4,1)]);; (* - : unit = () *)
 assert(difsymm [(2,1)] [(2,2);(1,3)] = [(2, 2); (1, 3)] );; (* - : unit = () *)
 assert(difsymm [(2,1);(1,1)] [(3,2);(4,5)] = [(2, 1); (1, 1); (3, 2); (4, 5)]);; (* - : unit = () *)
 assert(difsymm [("Hello",3);("John",1)] [("Hello",2);("World",1)] = [("Hello", 3); ("John", 1); ("World", 1)]);; (* - : unit = () *)

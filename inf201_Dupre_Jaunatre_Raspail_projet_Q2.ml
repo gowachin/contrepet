@@ -1,5 +1,5 @@
 (* ---------------------------------------------------------------------------
- inf201_Dupre_Jaunatre_Raspail_projet_partie2.ml : Projet d'INF201
+ inf201_Dupre_Jaunatre_Raspail_projet_Q2.ml : Projet d'INF201
 
  Alexandre Dupré <alexandre.dupre@etu.univ-grenoble-alpes.fr> \
  Maxime Jaunatre <maxime.jaunatre@etu.univ-grenoble-alpes.fr>  > Groupe D
@@ -157,6 +157,7 @@ let rec egaux (ens1:'a ensemble) (ens2:'a ensemble):bool =
     | [] -> true
 ;;
   
+(* On n'utilise pas l'opérateur = car l'ordre des éléments n'est pas important ici *)
 assert(egaux [] []);; (* - : unit = () *)
 assert(egaux [1;2] [2;1]);; (* - : unit = () *)
 assert(not (egaux ["Hello"] ["Hello";"World"]));; (* - : unit = () *)

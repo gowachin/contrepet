@@ -1,5 +1,5 @@
 (* ---------------------------------------------------------------------------
- inf201_Dupre_Jaunatre_Raspail_projet_partie2.ml : Projet d'INF201
+ inf201_Dupre_Jaunatre_Raspail_projet_Q3.ml : Projet d'INF201
 
  Alexandre Dupré <alexandre.dupre@etu.univ-grenoble-alpes.fr> \
  Maxime Jaunatre <maxime.jaunatre@etu.univ-grenoble-alpes.fr>  > Groupe D
@@ -39,7 +39,7 @@ assert(cardinale ["hello";"world"] = 2);; (* - : unit = () *)
 (*
 |SPÉCIFICATION
 | - Profil appartiente ∶ 'a -> 'a ensemble -> bool
-| - Sémantique : appartiente(elt ens) indique si l'élément elt appartient à l'ensemble ens
+| - Sémantique : appartiente(elt ens) indique si l'élément elt appartient à l'ensemble ens.
 | - Exemple :
 |   (1) appartiente 1 [1;2] = true
 |   (2) appartiente 3. [1.;2.;4.] = false
@@ -52,6 +52,7 @@ let appartiente (elt: 'a) (ens: 'a ensemble) : bool =
   List.exists p ens
 ;;
 
+assert(appartiente [] [[]]);; (* - : unit = () *)
 assert(appartiente 1 [1;2]);; (* - : unit = () *)
 assert(not (appartiente 3. [1.;2.;4.]));; (* - : unit = () *)
 assert(appartiente false [true;false]);; (* - : unit = () *)
@@ -63,7 +64,7 @@ assert(appartiente "66" ["Order";"66"]);;
 (* 
 |SPÉCIFICATION
 | - Profil incluse ∶ 'a ensemble -> 'a ensemble -> bool
-| - Sémantique : (inclus ens1 ens2) est vrai si et seulement si ens1 inclus dans ens2
+| - Sémantique : (inclus ens1 ens2) est vrai si et seulement si ens1 inclus dans ens2.
 | - Exemple :
 |   (1) incluse [1] [1;2] = true
 |   (2) incluse [1] [2;3] = false
@@ -75,6 +76,7 @@ let incluse (e1:'a ensemble) (e2:'a ensemble): bool =
   List.fold_right (fun x y -> (List.exists (fun elt -> elt=x) e2) && y) e1 true
 ;;
 
+assert(incluse [] []);; (* - : unit = () *)
 assert(incluse [1] [1;2]);; (* - : unit = () *)
 assert(not (incluse [1] [2;3]));; (* - : unit = () *)
 assert(not (incluse ["Never";"Gonna";"Give"] ["You";"Up"]));; (* - : unit = () *)
@@ -97,6 +99,7 @@ let supprimee (elt:'a) (ens:'a ensemble) : 'a ensemble =
   List.filter p ens
 ;;
 
+assert(supprimee [] [[]] = []);; (* - : unit = () *)
 assert(supprimee 3 [1;3] = [1]);; (* - : unit = () *)
 assert(supprimee "hello" ["world";"hello"] = ["world"]);; (* - : unit = () *)
 assert(supprimee false [true;false] = [true]);; (* - : unit = () *)
@@ -138,6 +141,7 @@ let unione (ens1:'a ensemble) (ens2:'a ensemble):'a ensemble =
   List.filter (fun x -> not (appartiente x (intersectione ens1 ens2 ))) ens1@ens2
 ;;
 
+assert(unione [] [] = []);; (* - : unit = () *) 
 assert(unione [1;2] [2;1] = [2;1]);; (* - : unit = () *)
 assert(unione [1;2] [3;4] = [1;2;3;4]);; (* - : unit = () *)
 assert(unione ["Hello"] ["Hello";"World"] = ["Hello";"World"]);; (* - : unit = () *)
@@ -158,6 +162,7 @@ let dife (ens1 : 'a ensemble) (ens2 : 'a ensemble) : 'a ensemble =
   List.filter (fun x -> not (appartiente x ens2) ) ens1
 ;;
 
+assert(dife [] [] = []);; (* - : unit = () *)
 assert(dife [2] [2;1] = []);; (* - : unit = () *)
 assert(dife [1;2] [3;4] = [1;2]);; (* - : unit = () *)
 assert(dife ["Hello";"IamAI"] ["Hello";"World"] = ["IamAI"]);; (* - : unit = () *)
