@@ -167,8 +167,7 @@ assert(not (motsSontContrepet ( ['m';'i';'n'], ['s';'e';'c';'h';'e'] ) (['s';'o'
 
 
 (* 
-(* Q13 *)
-(* 
+(* Q13 
 |SPÉCIFICATION
 | - Profil motsSontContrepet ∶ phrase -> phrase -> bool
 | - Sémantique : (phrasesSontContrepet phr1 phr2 ) est vrai si et seulement si phr1 et phr2 sont contre-
@@ -183,4 +182,6 @@ let rec phrasesSontContrepet (p1:phrase) (p2:phrase): bool =
   | [],_ | _,[] -> false
   | deb1::mid1::fin1,deb2,mid2,fin2 -> (motsSontContrepet (deb1,mid1) (deb2,mid2)) && phrasesSontContrepet fin1 fin2
 ;;
+*)(*
+phrasesSontContrepet [ ['q'; 'u'; 'e'; 'l'; 'l'; 'e'] ; ['m';'i';'n']; ['s';'e';'c';'h';'e'] ] [['q'; 'u'; 'e'; 'l'; 'l'; 'e'] ; ['s';'i';'n']; ['m';'e';'c';'h';'e']]
 *)
